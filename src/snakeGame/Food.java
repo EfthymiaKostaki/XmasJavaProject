@@ -1,7 +1,6 @@
-package snakeGame;
+package XmasJavaProject;
 
 import java.util.Random;
-
 import java.awt.image.BufferedImage;
 
 public class Food {
