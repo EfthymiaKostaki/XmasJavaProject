@@ -1,4 +1,4 @@
-package snakeGame;
+package XmasJavaProject;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -24,8 +24,8 @@ public class Board extends JPanel implements ActionListener {
 
 
 //Holds height and width of the window
-private final static int BOARDWIDTH = 1000;
-private final static int BOARDHEIGHT = 600;
+private final static int BOARDWIDTH = 700;
+private final static int BOARDHEIGHT = 700;
 
 //Used to represent pixel size of food & our snake's joints
 private final static int PIXELSIZE = 25;
