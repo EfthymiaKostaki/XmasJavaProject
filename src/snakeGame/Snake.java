@@ -1,4 +1,4 @@
-package snakeGame;
+package XmasProject;
 
 public class Snake {
 
