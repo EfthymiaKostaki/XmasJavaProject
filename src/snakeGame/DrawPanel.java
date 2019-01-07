@@ -1,50 +1,137 @@
-package XmasProject
+package XmasProject;
 
 import java.awt.Color;
-import java.awt.Graphics;
+import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.Vector;
-
+import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-
 /**
- * The Christmas Card program main class.
+ * The program's main window.
+ * Extends JFrame to display the window where the
+ * trees and snow are drawn. Implements the {@link java.lang.Runnable Runnable}
+ * interface so as to create a thread that repeatedly calls the
+ * {@link gr.aueb.xmascard.Drawable#draw() draw}method.
  *
- * @author Georgios Zouganelis
- * Draw components from this object to reduce flickering.
+ * @author Giorgos Gousios, Diomidis Spinellis
+ * @opt nodefillcolor lightblue
+ * @assoc 1 drawablePanel 1 DrawablePanel
  */
-public class DrawablePanel extends JPanel {
+public class DrawPanel extends JFrame implements Runnable {
 
-    /** The DrawPanel this DrawablePanel is attached to **/
-    private DrawPanel controller = null;
+    /** The window's width. */
+    public static final int WIDTH = 500;
+    /** The window's height. */
+    public static final int HEIGHT = 500;
 
-    /** Serial number of persistent  data.
-     * Required, because JPanel implements serializable.
+    /** The window's background color (blue). */
+    public static final Color backgroundColor = new Color(0, 153, 204);
+
+    /* A table that holds the objects to be drawn */
+    private Vector<Drawable> drawObjects = null;
+
+    /* The drawing thread */
+    private Thread thread;
+
+    /* The canvas to draw onto */
+    private DrawablePanel drawablePanel = null;
+
+    /** Serial number of persistant  data.
+     * Required, because JFrame implements serializable.
      */
-    private static final long serialVersionUID = 1L;
+    static final long serialVersionUID = 1L;
 
     /**
-     * Constructor to initialize the DrawablePanel with it's controller
+     * Constructor to initialize and display the window and starts the
+     * animation.
      *
      */
-    public DrawablePanel(DrawPanel panel) {
-        controller = panel;
+    public DrawPanel() {
+        super("Christmas Card");
+        drawObjects = new Vector<Drawable>();
+        initializeGraphics();
+        initializeThread();
+    }
+
+    /** Initialize the main window. */
+    private void initializeGraphics() {
+        // Make our window look nice
+        JFrame.setDefaultLookAndFeelDecorated(true);
+
+        // Create our drawing canvas
+        drawablePanel = new DrawablePanel(this);
+        drawablePanel.setBackground(backgroundColor);
+        drawablePanel.setPreferredSize(new Dimension(WIDTH, HEIGHT));
+        setContentPane(drawablePanel);
+
+        // Handle termination
+        setDefaultCloseOperation(
+                javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+
+        // Exit when the window is closed
+        addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e) {
+                System.exit(0);
+            }
+        });
+
+        // Our size
+        setSize(WIDTH, HEIGHT);
+
+        // Force the parent window to expand the canvas to all available space
+        pack();
+
+        //Display the window
+        setVisible(true);
+    }
+
+    /** Start the execution of the drawing thread. */
+    private void initializeThread() {
+        if (thread == null) {
+            thread = new Thread(this);
+            thread.setPriority(Thread.MIN_PRIORITY);
+            thread.start();
+        }
+    }
+
+    /** Add a component to be drawn. */
+    public void addDrawObject(Drawable drawObject) {
+        drawObjects.add(drawObject);
+    }
+
+    /** Return a copy of the component list to be drawn */
+    public Vector<Drawable> getDrawables() {
+        return new Vector<Drawable>(drawObjects);
     }
 
     /**
-     * Perform all drawing operations
-     * By overriding the JPanel method and initiating all the drawing
-     * from this place we take advantage of JPanel's double-buffering
-     * capability.
+     * The method to be executed by the running thread. Executes the
+     * {@link DrawablePanel#repaint()}method periodically.
      */
-    @Override
-    public void paintComponent(Graphics g){
-        super.paintComponent(g);
-        setBackground(DrawPanel.backgroundColor);
+    @Override public void run() {
+        Thread me = Thread.currentThread();
 
-        // Ask our controller for a copy of items to draw
-        Vector<Drawable> toPaint = controller.getDrawables();
-        for (Drawable d : toPaint)
-            d.draw(g);
+        // Allow termination by setting thread to null
+        while (thread == me) {
+            // tell drawablePanel to repaint its contents
+            drawablePanel.repaint();
+            try {
+                Thread.sleep(250);
+            } catch (InterruptedException e) {
+            }
+        }
+        thread = null;
     }
+
+    /**
+     * Get the canvas's drawing panel
+     *
+     * @return javax.swing.JPanel
+     */
+    public JPanel getCanvas(){
+        return drawablePanel;
+    }
+
 }
